@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  phone    String @unique
+
+  Company_User Company_User[]
+  Job          Job[]
+  claim        Claim[]
+}
+
+model Company {
+  id      Int    @id @default(autoincrement())
+  name    String
+  desc    String
+  address String
+  city    String
+
+  Company_User Company_User[]
+}
+
+model Company_User {
+  id         Int @id @default(autoincrement())
+  user_id    Int
+  company_id Int
+
+  user    User    @relation(fields: [user_id], references: [id])
+  company Company @relation(fields: [company_id], references: [id])
+}
+
+model Job {
+  id     Int    @id @default(autoincrement())
+  title  String
+  desc   String
+  status String
+
+  user_id Int
+  job_id Int
+
+  createdAt DateTime @default(now())
+
+  user  User    @relation(fields: [user_id], references: [id])
+  claim Claim[]
+  tag Tag[]
+  location Location[]
+}
+
+model Claim {
+  id        Int      @id @default(autoincrement())
+  status    String
+  createdAt DateTime
+
+  user_id Int
+  job_id  Int
+
+  user User @relation(fields: [user_id], references: [id])
+  job  Job  @relation(fields: [job_id], references: [id])
+}
+
+model Tag {
+  id Int @id @default(autoincrement())
+  name String
+  job_id Int
+
+  job Job @relation(fields: [job_id], references: [id])
+}
+
+model Location {
+  id Int @id @default(autoincrement())
+  name String
+
+  job Job[] 
+}
