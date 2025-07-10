@@ -1,81 +1,119 @@
 'use client'
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useEffect, useRef, useState, useTransition } from "react";
-import { LoginDataAction, RegisterDataAction } from "../../app/actions/auth";
-import { User } from "../../../generated/prisma";
-import { PhoneInput } from "@/components/ui/phone-input";
-import {z} from "zod"
-import { Alert, AlertTitle } from "@/components/ui/alert"
-import { $ZodIssue } from "zod/v4/core";
-import Link from "next/link";
-import ErrorsAlert from "../alert/ErrorsAlert";
 
-const LoginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email' }),
-  password: z.string()
-    .min(8, { message: "Password must be at least 8 characters long" })
-    .max(20, { message: "Password must not exceed 20 characters" })
-    .regex(/[A-Z]/, { message: "Password Must contain at least one uppercase letter" })
-    .regex(/[a-z]/, { message: "Password Must contain at least one lowercase letter" })
-    .regex(/[0-9]/, { message: "Password Must contain at least one number" })
-    .regex(/[^a-zA-Z0-9]/, { message: "Password Must contain at least one symbol" }),
-})
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useRef, useState, useTransition } from "react"
+import { LoginSchema } from "@/lib/schemas/LoginSchema"
+import { LoginDataAction } from "@/app/actions/auth"
+import { User } from "../../../generated/prisma"
+import { $ZodIssue } from "zod/v4/core"
+import Link from "next/link"
+import ErrorsAlert from "../alert/ErrorsAlert"
 
-export default function LoginForm() {
-    const [errors, setErrors] = useState<$ZodIssue[]>([])
-    const [is_sending, startProcessing] = useTransition()
-    const email_ref = useRef("")
-    const pwd_ref = useRef("")
-    
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-        if(!email_ref.current.valueOf || !pwd_ref.current.valueOf || is_sending){
-            alert("can't leave fields empty !")
-            return
-        }
-        const sentFormData = new FormData(e.currentTarget)
-        const rawData = Object.fromEntries(sentFormData.entries())
-        
-        const result = LoginSchema.safeParse(rawData)
-    
-        if (!result.success) {
-            console.log(result.error.issues);
-            setErrors(result.error.issues)
-            return
-        }
-        startProcessing(()=>{
-            LoginDataAction(sentFormData)
-            .then((res: User)=>{
-                console.log(res)
-            })
-            .catch((err)=>{
-                setErrors([err])
-            })
-        })
+export function LoginForm() {
+  const [errors, setErrors] = useState<$ZodIssue[]>([])
+  const [is_sending, startProcessing] = useTransition()
+  const email_ref = useRef("")
+  const pwd_ref = useRef("")
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!email_ref.current.valueOf || !pwd_ref.current.valueOf || is_sending) {
+      alert("can't leave fields empty !")
+      return
     }
-    return (
-        <div className="border-1 w-[50vw] shadow-2xl rounded-2xl">
-            <h1 className="text-2xl text-center p-4 bg-primary text-secondary rounded-t-2xl">
-                Log in
-            </h1>
-            <form onSubmit={handleSubmit} className="register-form p-4 pb-0">
-                <div>
-                    <Label htmlFor="email">Email :</Label>
-                    <Input disabled={is_sending} required placeholder="example@example.com" name="email" id="email" type="email"/>
+    const sentFormData = new FormData(e.currentTarget)
+    const rawData = Object.fromEntries(sentFormData.entries())
+
+    const result = LoginSchema.safeParse(rawData)
+
+    if (!result.success) {
+      console.log(result.error.issues);
+      setErrors(result.error.issues)
+      return
+    }
+    startProcessing(() => {
+      LoginDataAction(sentFormData)
+        .then((res: User) => {
+          console.log(res)
+        })
+        .catch((err) => {
+          setErrors([err])
+        })
+    })
+  }
+  return (
+    <div className={cn("flex flex-col gap-6")} >
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardDescription>
+            Login with your Google account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}> 
+            <div className="grid gap-6">
+              <div className="flex flex-col gap-1">
+                {/* <Button variant="outline" className="w-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                      d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Login with Apple
+                </Button> */}
+                <Button variant="outline" className="w-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Login with Google
+                </Button>
+              </div>
+              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                <span className="bg-card text-muted-foreground relative z-10 px-2">
+                  Or continue with
+                </span>
+              </div>
+              <div className="grid gap-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email :</Label>
+                  <Input disabled={is_sending} required placeholder="example@example.com" name="email" id="email" type="email" />
                 </div>
-                <div>
-                    <Label htmlFor="password">Password :</Label>
-                    <Input disabled={is_sending} required placeholder="enter your password" name="password" id="password" type="password"/>
+                <div className="grid gap-2">
+                  <Label htmlFor="password">Password :</Label>
+                  <Input disabled={is_sending} required placeholder="enter your password" name="password" id="password" type="password" />
                 </div>
                 <Button disabled={is_sending} variant="default" className="my-1">Login</Button>
-            </form>
-            <p className="text-center p-2">
-                You don't have an Account ? 
-                <Link href="/register" className="text-blue-500 px-2">Register</Link>
-            </p>
-            <ErrorsAlert errors={errors}/>
-        </div>
-    );
+              </div>
+              <div className="">
+                <p className="text-center text-sm">
+                  You don't have an Account ?
+                  <Link href="/register" className="underline underline-offset-4 p-1">Register</Link>
+                </p>
+                <ErrorsAlert errors={errors} />
+              </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
+      </div>
+    </div>
+  )
 }

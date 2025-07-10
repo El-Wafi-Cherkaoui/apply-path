@@ -1,13 +1,13 @@
-import LoginForm from "@/components/auth/loginForm";
-import { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "Login",
-};
+import { GalleryVerticalEnd } from "lucide-react"
+
+import { LoginForm } from "@/components/auth/loginForm"
+
 export default function LoginPage() {
-    
-    return (
-        <div className="h-[100vh] flex justify-center items-center">
-            <LoginForm/>
-        </div>
-    );
+  return (
+    <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <LoginForm />
+      </div>
+    </div>
+  )
 }

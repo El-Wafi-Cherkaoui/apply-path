@@ -120,15 +120,6 @@
     @apply bg-background text-foreground;
   }
 }
-.register-form{
-  @apply flex flex-col gap-2
-}
-.register-form div{
-  @apply grid grid-cols-7
-}
-.register-form input{
-  @apply col-span-5
-}
-.register-form label{
-  @apply col-span-2
+.form label{
+  @apply col-span-2 !py-1
 }
