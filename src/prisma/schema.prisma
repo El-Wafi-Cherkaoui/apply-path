@@ -16,6 +16,8 @@ model User {
   email    String @unique
   password String
   phone    String? @unique
+  avatar   String?
+  name     String?
 
   Company_User Company_User[]
   Job          Job[]
