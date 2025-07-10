@@ -1,13 +1,13 @@
+import LoginForm from "@/components/auth/loginForm";
 import { Metadata } from "next";
-import RegisterForm from "../../components/auth/registerForm";
 export const metadata: Metadata = {
-  title: "Register",
+  title: "Login",
 };
-export default function RegisterPage() {
+export default function LoginPage() {
     
     return (
         <div className="h-[100vh] flex justify-center items-center">
-            <RegisterForm/>
+            <LoginForm/>
         </div>
     );
 }

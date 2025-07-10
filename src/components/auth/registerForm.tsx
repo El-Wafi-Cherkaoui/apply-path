@@ -2,27 +2,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
-import { RegisterDataAction } from "../actions/actions";
+import { useEffect, useState, useTransition } from "react";
+import { RegisterDataAction } from "../../app/actions/auth";
 import { User } from "../../../generated/prisma";
 import { PhoneInput } from "@/components/ui/phone-input";
 import {z} from "zod"
 import { Alert, AlertTitle } from "@/components/ui/alert"
 import { $ZodIssue } from "zod/v4/core";
-
-const RegisterSchema = z.object({
-  email: z.string().email({ message: 'Invalid email' }),
-  phoneNumber: z.string().length(13, { message: 'Invalid phone number' }),
-  password: z.string()
-    .min(8, { message: "Password must be at least 8 characters long" })
-    .max(20, { message: "Password must not exceed 20 characters" })
-    .regex(/[A-Z]/, { message: "Password Must contain at least one uppercase letter" })
-    .regex(/[a-z]/, { message: "Password Must contain at least one lowercase letter" })
-    .regex(/[0-9]/, { message: "Password Must contain at least one number" })
-    .regex(/[^a-zA-Z0-9]/, { message: "Password Must contain at least one symbol" }),
-})
+import Link from "next/link";
+import ErrorsAlert from "../alert/ErrorsAlert";
+import { RegisterSchema } from "@/lib/schemas/RegisterSchema";
 
 export default function RegisterForm() {
+    const [is_sending, start_processing] = useTransition()
     const [errors, setErrors] = useState<$ZodIssue[]>([])
     const [formData, setFormData] = useState({email: "", password : "", c_password : "", phoneNumber: ""})
     const [phoneNumber, setPhoneNumber] = useState('')
@@ -35,10 +27,6 @@ export default function RegisterForm() {
     
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
-        if(formData.password != formData.c_password){
-            alert("Password do not match !")
-            return
-        }
         const sentFormData = new FormData(e.currentTarget)
         sentFormData.set('phoneNumber', phoneNumber)
 
@@ -51,16 +39,25 @@ export default function RegisterForm() {
             console.log(result.error.issues);
             setErrors(result.error.issues)
             return
-            // throw new Error(
-            //     result.error.issues.map((i) => `${i.path[0]}: ${i.message}`).join("\n")
-            // )
         }
-        RegisterDataAction(sentFormData)
-        .then((res: User)=>{
-            console.log(res)
-        })
-        .catch((err)=>{
-            alert(err)
+        if(formData.password != formData.c_password){
+            setErrors([{
+            message: "Password doesn't match",
+            code: "custom",
+            path: ['password'], 
+            input: undefined
+            }])   
+            return
+        }
+
+        start_processing(()=>{
+            RegisterDataAction(sentFormData)
+            .then((res: User | void)=>{
+                console.log(res)
+            })
+            .catch((err)=>{
+                alert(err)
+            })
         })
     }
     return (
@@ -71,7 +68,7 @@ export default function RegisterForm() {
             <form onSubmit={handleSubmit} className="register-form p-4 pb-0">
                 <div>
                     <Label htmlFor="email">Email :</Label>
-                    <Input required onChange={handleChange} placeholder="example@example.com" name="email" id="email" type="email"/>
+                    <Input disabled={is_sending} required onChange={handleChange} placeholder="example@example.com" name="email" id="email" type="email"/>
                 </div>
                 <div>
                     <Label htmlFor="phoneNumber">Phone :</Label>
@@ -82,32 +79,25 @@ export default function RegisterForm() {
                         defaultCountry="MA" 
                         name="phoneNumber" 
                         id="phoneNumber" 
-                        className="col-span-5"
+                        className="col-span-5" 
+                        disabled={is_sending}
                     />
                 </div>
                 <div>
                     <Label htmlFor="password">Password :</Label>
-                    <Input required placeholder="enter your password" onChange={handleChange} name="password" id="password" type="password"/>
+                    <Input disabled={is_sending} required placeholder="enter your password" onChange={handleChange} name="password" id="password" type="password"/>
                 </div>
                 <div>
                     <Label htmlFor="c_password">Confirm Password :</Label>
-                    <Input required placeholder="confirm your password" onChange={handleChange} name="c_password" id="c_password" type="password"/>
+                    <Input disabled={is_sending} required placeholder="confirm your password" onChange={handleChange} name="c_password" id="c_password" type="password"/>
                 </div>
-                <Button variant="default" className="my-1">Register</Button>
+                <Button disabled={is_sending} variant="default" className="my-1">Register</Button>
             </form>
             <p className="text-center p-2">
                 Have already an Account ? 
-                <a href="#" className="text-blue-500 px-2">Log in</a>
+                <Link href="/login" className="text-blue-500 px-2">Log in</Link>
             </p>
-            {
-                [...errors].reverse().map((err, index)=>{
-                    return(
-                        <Alert key={index} variant="destructive" className={`absolute right-5 w-fit animate-in fade-in duration-1000`} style={{ bottom: `${index*8 + 5}vh` }}>
-                            <AlertTitle>{err.message}</AlertTitle>
-                        </Alert>
-                    )
-                })
-            }
+            <ErrorsAlert errors={errors}/>
         </div>
     );
 }
